@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Management System</title>
+    <!-- Removed: <script src="https://cdn.tailwindcss.com"></script> -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+   <style>
+    /* --- COLOR PALETTE --- */
+    :root {
+        --primary-color: #4f46e5; /* Indigo 600 */
+        --secondary-color: #f97316; /* Orange 500 (Accent/Booking) */
+        --success-color: #10b981; /* Emerald 500 */
+        --error-color: #ef4444; /* Red 500 */
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+    }
+
+    /* --- BASE STYLES & LAYOUT --- */
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--gray-100);
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px 16px; /* p-4 md:p-8 */
+    }
+    #app-container {
+        max-width: 1024px; /* max-w-5xl */
+        margin: 0 auto; /* mx-auto */
+    }
+    .hidden { display: none !important; }
+
+    /* --- HEADER --- */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px; 
+        padding: 16px;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .header h1 {
+        font-size: 24px;
+        font-weight: 800; /* Extra bold */
+        color: var(--gray-800);
+        display: flex;
+        align-items: center;
+    }
+    .header i.fas.fa-bus {
+        color: var(--primary-color);
+        margin-right: 12px;
+    }
+    #auth-status {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        gap: 12px;
+    }
+    #user-info {
+        font-weight: 600;
+        color: var(--gray-600);
+    }
+
+    /* --- TABS --- */
+    .tab-nav {
+        display: flex;
+        border-bottom: 1px solid var(--gray-300);
+        background-color: white;
+        border-radius: 12px 12px 0 0;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .tab-button {
+        flex: 1;
+        padding: 16px;
+        color: var(--gray-600);
+        font-weight: 600;
+        transition: background-color 0.2s, color 0.2s;
+        border: none;
+        background: none;
+        cursor: pointer;
+        position: relative;
+    }
+    .tab-button:hover {
+        background-color: var(--gray-50);
+        color: var(--primary-color);
+    }
+    .tab-button i {
+        margin-right: 8px;
+    }
+    .tab-button.active {
+        background-color: var(--primary-color);
+        color: white;
+        /* Custom underline effect */
+        box-shadow: inset 0 -4px 0 0 var(--secondary-color);
+    }
+
+    /* --- CONTENT CARD & LAYOUT UTILITIES --- */
+    .module-card {
+        background-color: white;
+        padding: 24px;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 32px;
+        border: 1px solid var(--gray-200);
+    }
+    .max-w-md-center {
+        max-width: 448px; /* max-w-md */
+        margin: 0 auto;
+    }
+    .text-center { text-align: center; }
+    .mb-6 { margin-bottom: 24px; }
+    .mt-6 { margin-top: 24px; }
+    .pt-6 { padding-top: 24px; }
+    .border-t { border-top: 1px solid var(--gray-200); }
+    .shadow-lg { box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); }
+    .shadow-inner { box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06); }
+    .bg-indigo-50 { background-color: #eef2ff; }
+    .bg-red-50 { background-color: #fef2f2; }
+    .bg-yellow-100 { background-color: #fef9c3; }
+
+    /* --- NOTIFICATIONS --- */
+    #notification-area {
+        padding: 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        transition: opacity 0.3s;
+    }
+    .notification-success {
+        background-color: #d1fae5;
+        color: #047857; /* Emerald 700 */
+    }
+    .notification-error {
+        background-color: #fee2e2;
+        color: #b91c1c; /* Red 700 */
+    }
+    
+    /* --- FORMS & INPUTS --- */
+    .form-section {
+        margin-bottom: 16px; /* space-y-4 for overall form */
+    }
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 4px;
+    }
+    .input-field {
+        background-color: white;
+        border: 1px solid var(--gray-300);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        padding: 12px;
+        border-radius: 8px;
+        width: 100%;
+        display: block;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .input-field:focus {
+        border-color: var(--primary-color);
+        outline: 0;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+    .flex-group {
+        display: flex;
+        gap: 16px;
+    }
+    .flex-group > div {
+        flex: 1;
+    }
+    
+    /* Radio Buttons (for Login Role Selector) */
+    .role-selector {
+        display: flex;
+        gap: 16px;
+    }
+    .role-selector label {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border-radius: 8px;
+        border: 2px solid;
+        cursor: pointer;
+        transition: box-shadow 0.2s, transform 0.1s;
+        flex: 1;
+        font-weight: 600;
+    }
+    .role-selector label:hover {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+    }
+    .role-selector input[type='radio'] {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        height: 1.25rem; 
+        width: 1.25rem; 
+        border-radius: 50%;
+        border: 2px solid var(--gray-400); 
+        cursor: pointer;
+        outline: none;
+        transition: border-color 0.15s, background-color 0.15s;
+        vertical-align: middle;
+        margin-right: 8px;
+    }
+    .role-selector input[type='radio']:checked {
+        border-color: transparent;
+        background-color: var(--primary-color);
+        box-shadow: inset 0 0 0 4px #fff; 
+    }
+    .bg-red-50 input[type='radio']:checked {
+        background-color: var(--error-color);
+    }
+
+    /* --- BUTTONS --- */
+    .button-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+        padding: 16px;
+        background-color: var(--gray-50);
+        border-radius: 8px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+    .button {
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        color: white !important;
+        transition: background-color 0.2s, box-shadow 0.2s, transform 0.1s;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        flex-shrink: 0;
+    }
+    .button:disabled {
+        background-color: var(--gray-300);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    .button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .button i { margin-right: 8px; }
+    .button-full { width: 100%; display: block; }
+    .button-header { padding: 4px 12px; border-radius: 9999px; font-size: 12px; }
+
+    .button-primary { background-color: var(--primary-color); }
+    .button-primary:hover { background-color: #4338ca; } /* Indigo 700 */
+    .button-success { background-color: var(--success-color); }
+    .button-success:hover { background-color: #059669; }
+    .button-warning { background-color: #f59e0b; } /* Yellow 600 */
+    .button-warning:hover { background-color: #d97706; }
+    .button-danger { background-color: var(--error-color); }
+    .button-danger:hover { background-color: #dc2626; }
+    .button-secondary-booking { background-color: var(--secondary-color); }
+    .button-secondary-booking:hover { background-color: #ea580c; } /* Orange 700 */
+    .button-gray { background-color: #6b7280; }
+    .button-gray:hover { background-color: #4b5563; }
+
+
+    /* --- TABLES --- */
+    .data-table-container {
+        overflow-x: auto;
+        border-radius: 8px;
+        border: 1px solid var(--gray-200);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: white;
+    }
+    .data-table thead {
+        background-color: var(--gray-100);
+    }
+    .data-table th, .data-table td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid var(--gray-200);
+        font-size: 14px;
+    }
+    .data-table th {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--gray-600);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .data-table tbody tr:hover {
+        background-color: var(--gray-50);
+    }
+
+    /* Text Colors/Styles for table content */
+    .text-primary-color { color: var(--primary-color); }
+    .text-secondary-color { color: var(--secondary-color); }
+    .text-success-color { color: var(--success-color); }
+    .text-error-color { color: var(--error-color); }
+    .text-green-700 { color: #047857; }
+    .text-xs { font-size: 12px; }
+    .font-mono { font-family: monospace; }
+    .font-semibold { font-weight: 600; }
+    .font-bold { font-weight: 700; }
+    .text-sm { font-size: 14px; }
+    .text-gray-600 { color: var(--gray-600); }
+    .text-gray-500 { color: #6b7280; }
+    .text-yellow-800 { color: #92400e; }
+    .italic { font-style: italic; }
+
+
+    /* --- MODALS --- */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+    .modal-content {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        padding: 24px;
+        width: 90%;
+        max-width: 512px;
+        transition: all 0.3s;
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--gray-200);
+        padding-bottom: 8px;
+    }
+    .modal-header h3 {
+        font-size: 20px;
+        font-weight: bold;
+        color: var(--gray-800);
+    }
+    .modal-close-button {
+        font-size: 24px;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: color 0.2s;
+        padding: 4px;
+        background: none;
+        border: none;
+    }
+    .modal-close-button:hover {
+        color: var(--gray-800);
+    }
+    
+    /* --- SEAT MAP STYLES --- */
+    .seat-map-container {
+        display: flex;
+        justify-content: center;
+        padding: 16px;
+        background-color: var(--gray-100);
+        border-radius: 8px;
+        border: 1px solid var(--gray-300);
+    }
+    .seat-row {
+        display: flex;
+        flex-wrap: wrap;
+        max-width: 250px;
+        gap: 10px;
+        justify-content: flex-start;
+    }
+    .seat-row::after {
+        content: "";
+        flex: 1; 
+        min-width: 20px; /* Space for the bus aisle */
+    }
+    .seat-item {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+        border: 2px solid;
+        cursor: pointer;
+        transition: all 0.15s;
+        user-select: none;
+        margin: 4px;
+    }
+    .seat-item.available {
+        background-color: var(--success-color);
+        border-color: #059669; /* Emerald 600 */
+        color: white;
+    }
+    .seat-item.available:hover {
+        background-color: #059669;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.4);
+    }
+    .seat-item.occupied {
+        background-color: var(--error-color);
+        border-color: #b91c1c; /* Red 700 */
+        color: white;
+        cursor: not-allowed;
+    }
+    .seat-item.selected {
+        background-color: var(--secondary-color);
+        border-color: #c2410c; /* Orange 700 */
+        color: white;
+        box-shadow: 0 0 0 4px #f97316; /* Orange ring */
+        transform: scale(1.05);
+    }
+    .seat-legend {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 16px;
+        font-size: 14px;
+    }
+
+    /* --- PRINT STYLES --- */
+    @media print {
+        body > * {
+            visibility: hidden;
+        }
+        #print-content, #print-content * {
+            visibility: visible;
+        }
+        #print-content {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            font-size: 12pt;
+        }
+        .ticket-container {
+            border: 2px solid #000;
+            margin-bottom: 20px;
+            padding: 15px;
+            break-after: always;
+        }
+        .ticket-header {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        .ticket-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .ticket-footer {
+            margin-top: 10px;
+            border-top: 1px dashed var(--gray-600);
+            padding-top: 5px;
+        }
+    }
+</style>
+
+</head>
+<body>
+
+    <div id="app-container">
+        
+        <!-- Header & Auth Status -->
+        <header class="header">
+            <h1 class="header-title">
+                <i class="fas fa-bus"></i> Bus Management System
+            </h1>
+            <div id="auth-status">
+                <!-- Status will be updated by JS -->
+                <span id="user-info">Loading...</span>
+                <button id="auth-button" onclick="logout()" class="button button-danger button-header hidden">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </header>
+
+
+        <!-- Notification Area -->
+        <div id="notification-area" class="hidden"></div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-button" data-tab="account">
+                <i class="fas fa-user-circle"></i> Account
+            </button>
+            <button class="tab-button" data-tab="bus">
+                <i class="fas fa-shuttle-van"></i> Bus Routes
+            </button>
+            <button class="tab-button" data-tab="trip">
+                <i class="fas fa-calendar-alt"></i> Trip Schedules
+            </button>
+            <button class="tab-button" data-tab="passenger">
+                <i class="fas fa-users"></i> Passenger Management
+            </button>
+            <button class="tab-button" data-tab="ticket">
+                <i class="fas fa-ticket-alt"></i> Ticket Booking
+            </button>
+        </div>
+
+        <!-- Tab Content Containers -->
+        <div id="account-management" class="tab-content module-card"></div>
+        <div id="bus-management" class="tab-content module-card hidden"></div>
+        <div id="trip-management" class="tab-content module-card hidden"></div>
+        <div id="passenger-management" class="tab-content module-card hidden"></div>
+        <div id="ticket-management" class="tab-content module-card hidden"></div>
+    </div>
+    
+    <!-- Print Container (Invisible on screen, visible during print) -->
+    <div id="print-content"></div>
+
+    <!-- Universal Modal -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Modal Title</h3>
+                <button onclick="closeModal()" class="modal-close-button">&times;</button>
+            </div>
+            <form id="crud-form" class="form-section"></form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        const notificationArea = document.getElementById('notification-area');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalTitle = document.getElementById('modal-title');
+        const crudForm = document.getElementById('crud-form');
+        const userInfoEl = document.getElementById('user-info');
+        const authButtonEl = document.getElementById('auth-button');
+        
+        let userToken = localStorage.getItem('userToken') || null;
+        let userRole = localStorage.getItem('userRole') || 'guest';
+        let currentUsername = localStorage.getItem('username') || 'Guest';
+        
+        // Global state for selected trip (used for booking)
+        let selectedTrip = null;
+
+        // --- AUTHENTICATION & UI SETUP FUNCTIONS ---
+
+        /** Updates the visibility of tabs and header status based on user role. */
+        function updateUIVisibility() {
+            // Update Header
+            userInfoEl.textContent = userRole === 'guest' ? 'Not Logged In' : `Welcome, ${currentUsername} (${userRole})`;
+            authButtonEl.classList.toggle('hidden', userRole === 'guest');
+
+            // Update Tabs
+            document.querySelectorAll('.tab-button').forEach(button => {
+                const tab = button.getAttribute('data-tab');
+                button.classList.add('hidden');
+
+                if (tab === 'account') {
+                    button.classList.remove('hidden'); // Always visible
+                } else if (userRole === 'admin') {
+                    button.classList.remove('hidden'); // All tabs visible for admin
+                } else if (userRole === 'user' && (tab === 'passenger' || tab === 'ticket')) {
+                    button.classList.remove('hidden'); // Passenger & Ticket visible for user
+                }
+            });
+
+            // Switch to the appropriate default tab
+            let defaultTab = 'account';
+            if (userRole === 'admin') {
+                defaultTab = 'bus';
+            } else if (userRole === 'user') {
+                defaultTab = 'ticket';
+            }
+            
+            // Handle initial switch
+            const activeTabButton = document.querySelector(`[data-tab="${defaultTab}"]`);
+            if (activeTabButton && !activeTabButton.classList.contains('hidden')) {
+                 switchTab(defaultTab);
+            } else {
+                 switchTab('account'); // Fallback to account if default is hidden
+            }
+        }
+
+        /** Logs in the user and stores token/role. */
+        async function login(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('userToken', result.token);
+                    localStorage.setItem('userRole', result.role);
+                    localStorage.setItem('username', data.username);
+                    userToken = result.token;
+                    userRole = result.role;
+                    currentUsername = data.username;
+                    showNotification(`Logged in as ${result.role}!`, true);
+                    updateUIVisibility();
+                } else {
+                    showNotification(`Login Failed: ${result.error || 'Invalid credentials or server error.'}`, false);
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showNotification('Network Error: Could not reach the authentication server.', false);
+            }
+        }
+        
+        /** Registers a new user with the default 'user' role. */
+        async function register(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            data.role = 'user'; 
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification(`Registration successful! Please log in.`, true);
+                    renderAuthForm('login'); 
+                } else {
+                    showNotification(`Registration Failed: ${result.error}`, false);
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showNotification('Network Error: Could not reach the authentication server.', false);
+            }
+        }
+        
+        /** Registers a user with a specific role (Admin only action) */
+        async function adminRegisterUser(e) {
+            e.preventDefault();
+            const form = document.getElementById('admin-register-form');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/admin/register`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': userToken ? userToken : ''
+                    },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification(result.message, true);
+                    form.reset();
+                } else {
+                    showNotification(`Admin Registration Failed: ${result.error || 'Server error.'}`, false);
+                }
+            } catch (error) {
+                console.error('Admin Registration error:', error);
+                showNotification('Network Error: Could not reach the authentication server.', false);
+            }
+        }
+
+        /** Clears local storage and resets state. */
+        function logout() {
+            localStorage.removeItem('userToken');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('username');
+            userToken = null;
+            userRole = 'guest';
+            currentUsername = 'Guest';
+            showNotification('Successfully logged out.', true);
+            updateUIVisibility();
+        }
+
+        // --- UTILITY & API CALL FUNCTIONS ---
+
+        /** Shows a temporary notification message (success or error). */
+        function showNotification(message, isSuccess) {
+            notificationArea.textContent = message;
+            notificationArea.className = `notification-${isSuccess ? 'success' : 'error'}`;
+            notificationArea.classList.remove('hidden');
+            setTimeout(() => {
+                notificationArea.classList.add('hidden');
+            }, 5000);
+        }
+
+        /** Fetches Bus and Ticket data for seat map rendering. */
+        async function fetchTripDetailsAndTickets(tripId) {
+            if (!tripId || tripId === '0') return { trip: null, occupiedSeats: [] };
+
+            try {
+                // 1. Fetch Trip details
+                const tripResponse = await fetch(`${API_URL}/trip/${tripId}`, {
+                    headers: { 'Authorization': userToken || '' }
+                });
+                const trip = await tripResponse.json();
+
+                if (!tripResponse.ok) {
+                    showNotification(`Error fetching trip details: ${trip.message || 'Unknown error'}`, false);
+                    return { trip: null, occupiedSeats: [] };
+                }
+
+                // 2. Fetch Tickets for this Trip
+                // Query uses trip_id filter to get all tickets for this trip, regardless of ownership
+                const ticketsResponse = await fetch(`${API_URL}/ticket?trip_id=${tripId}`, {
+                    headers: { 'Authorization': userToken || '' }
+                });
+                const tickets = await ticketsResponse.json();
+
+                if (!ticketsResponse.ok) {
+                    showNotification(`Error fetching booked tickets: ${tickets.message || 'Unknown error'}`, false);
+                    // Continue with only trip data if ticket fetch fails
+                    return { trip: trip, occupiedSeats: [] };
+                }
+
+                const occupiedSeats = tickets.map(t => t.seat_number);
+                return { trip, occupiedSeats };
+
+            } catch (error) {
+                console.error('Trip/Ticket fetch error:', error);
+                showNotification('Network error while fetching trip and ticket data.', false);
+                return { trip: null, occupiedSeats: [] };
+            }
+        }
+        
+        /** Handles all CRUD form submissions (Add, Update, Delete). */
+        async function handleFormSubmission(e, module, type) {
+            e.preventDefault();
+            
+            let method;
+            let url = `${API_URL}/${module}`;
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            if (module === 'trip' && type === 'add' && data.bus_id === '0') {
+                showNotification('Please select a valid Bus Route.', false);
+                return;
+            }
+
+            if (type === 'add') {
+                method = 'POST';
+                // Special case: Ticket booking uses selectedTrip data
+                if (module === 'ticket') {
+                    if (!selectedTrip || !selectedTrip._id) {
+                        showNotification('Booking failed: No valid trip selected.', false);
+                        return;
+                    }
+                    if (data.seat_number === '0') {
+                        showNotification('Booking failed: Please select a seat.', false);
+                        return;
+                    }
+                    // CRITICAL FIX: Ensure Passenger ID is selected
+                    if (!data.passenger_id || data.passenger_id === '0' || data.passenger_id === '') { // Added '' check
+                        showNotification('Booking failed: Please select a passenger.', false);
+                        return;
+                    }
+                    
+                    data.trip_id = selectedTrip._id;
+                    data.fare = selectedTrip.fare;
+                    // Seat number must be passed as an integer
+                    data.seat_number = parseInt(data.seat_number); 
+                }
+                
+            } else {
+                const id = data.id || data.bus_id || data.passenger_id || data.trip_id || data.ticket_id;
+                
+                if (!id || id === '0') {
+                    showNotification(`Please select a valid ID to ${type}.`, false);
+                    return;
+                }
+                
+                url = `${API_URL}/${module}/${id}`;
+                delete data.id; 
+                delete data.bus_id; 
+                delete data.passenger_id; 
+                delete data.trip_id; 
+                delete data.ticket_id; 
+
+                if (type === 'update') {
+                    method = 'PUT';
+                } else if (type === 'delete') {
+                    method = 'DELETE';
+                } else {
+                    return; 
+                }
+            }
+            
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': userToken ? userToken : '' 
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                let result = {};
+                
+                if (response.ok) {
+                    result = await response.json();
+                } else {
+                    try {
+                        result = await response.json();
+                    } catch (e) {
+                        result.message = `Server failed with status ${response.status}. Check Node.js console.`;
+                    }
+                }
+                
+                if (!response.ok) {
+                    const statusMessage = `Status ${response.status}`;
+                    const message = result.message || result.error || 'Unknown server error.';
+                    const errors = result.errors ? ` • ${result.errors.join(' • ')}` : '';
+                    
+                    showNotification(`Operation Failed (${statusMessage}): ${message}${errors}`, false);
+                    return;
+                }
+
+                showNotification(`${module.charAt(0).toUpperCase() + module.slice(1)} ${type}ed successfully!`, true);
+                closeModal();
+                switchTab(module); 
+
+            } catch (error) {
+                console.error('Network Error:', error);
+                showNotification(`Network Error: Cannot connect to the API at ${url}`, false);
+            }
+        }
+
+        // --- PRINTING FUNCTIONS ---
+
+        /** Generates the printable HTML structure for one or more tickets. */
+        function generatePrintableTicketHTML(tickets, passengerDetails) {
+            let html = `
+                <div class="print-page">
+                    <h2 style="text-align: center; margin-bottom: 20px; color: var(--primary-color);">BOOKING CONFIRMATION</h2>
+                    <p style="text-align: center; font-size: 10pt; color: var(--gray-600);">Report Date: ${new Date().toLocaleDateString()}</p>
+            `;
+
+            tickets.forEach(ticket => {
+                const p = passengerDetails[ticket.passenger_id] || {};
+                const trip = ticket.trip_details || {};
+                const bus = trip.bus_details || {};
+
+                const passengerName = p.name || 'Passenger Data Missing';
+                const passengerAgeGender = p.age ? `${p.age} / ${p.gender || 'N/A'}` : 'N/A';
+                const passengerContact = p.contact || 'N/A';
+                
+                html += `
+                    <div class="ticket-container" style="border: 1px solid var(--gray-300); border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+                        <div class="ticket-header" style="border-bottom: 2px solid var(--secondary-color); padding-bottom: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="font-size: 16pt; margin: 0; color: var(--gray-800);">${trip.source || 'N/A'} &rarr; ${trip.destination || 'N/A'}</h3>
+                            <span style="font-weight: bold; color: var(--error-color); font-size: 14pt;">TICKET</span>
+                        </div>
+                        
+                        <div class="ticket-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div style="padding-right: 15px; border-right: 1px dashed var(--gray-300);">
+                                <p style="margin: 0 0 5px 0;"><strong style="color: var(--primary-color);">Booking ID:</strong> <span style="font-family: monospace;">${ticket._id.substring(0, 8)}...</span></p>
+                                <p style="margin: 0 0 5px 0;"><strong style="color: var(--primary-color);">Date of Journey:</strong> ${new Date(trip.date).toLocaleDateString("en-US", { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                                <p style="margin: 0 0 5px 0;"><strong style="color: var(--primary-color);">Bus Type:</strong> ${bus.type || 'N/A'}</p>
+                                <p style="margin: 0 0 5px 0;"><strong style="color: var(--primary-color);">Departure Time:</strong> ${trip.departure_time || 'N/A'}</p>
+                            </div>
+
+                            <div>
+                                <h4 style="margin: 0 0 5px 0; color: var(--gray-700); border-bottom: 1px solid var(--gray-200);">Passenger Details</h4>
+                                <p style="margin: 0 0 5px 0;"><strong>Name:</strong> ${passengerName}</p>
+                                <p style="margin: 0 0 5px 0;"><strong>Age/Gender:</strong> ${passengerAgeGender}</p>
+                                <p style="margin: 0 0 5px 0;"><strong>Contact:</strong> ${passengerContact}</p>
+                            </div>
+                        </div>
+
+                        <div class="ticket-footer" style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed var(--gray-300); display: flex; justify-content: space-between; font-size: 11pt;">
+                            <div style="font-size: 14pt;">
+                                <strong style="color: var(--primary-color);">SEAT:</strong> <span style="font-weight: bold; color: var(--secondary-color);">${ticket.seat_number}</span>
+                            </div>
+                            <div>
+                                <strong style="color: var(--success-color);">FARE PAID:</strong> $${(ticket.fare || 0).toFixed(2)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            return html;
+        }
+
+        /** Prints the list of currently displayed tickets (filtered by user/admin). */
+        async function printAllTickets(data) {
+            if (data.length === 0) {
+                showNotification('No tickets available to print.', false);
+                return;
+            }
+
+            try {
+                // 1. Collect unique IDs (Passenger IDs and Trip IDs)
+                const passengerIds = [...new Set(data.map(t => t.passenger_id))];
+                const tripIds = [...new Set(data.map(t => t.trip_id))];
+                const passengerDetails = {};
+                const tripDetailsCache = {};
+
+                // 2. Fetch all required Passenger details for printing
+                const passengerPromises = passengerIds.map(id => 
+                    fetch(`${API_URL}/passenger/${id}`, { headers: { 'Authorization': userToken || '' } })
+                        .then(res => res.json())
+                        .then(p => { passengerDetails[id] = p; })
+                        .catch(err => console.error(`Failed to fetch passenger ${id}:`, err))
+                );
+                
+                // 3. Fetch all required Trip details for printing
+                const tripPromises = tripIds.map(id => 
+                    fetch(`${API_URL}/trip/${id}`, { headers: { 'Authorization': userToken || '' } })
+                        .then(res => res.json())
+                        .then(t => { tripDetailsCache[id] = t; })
+                        .catch(err => console.error(`Failed to fetch trip ${id}:`, err))
+                );
+
+                await Promise.all([...passengerPromises, ...tripPromises]);
+                
+                // 4. Augment ticket data with fetched details
+                const ticketsWithDetails = data.map(ticket => ({
+                    ...ticket,
+                    trip_details: tripDetailsCache[ticket.trip_id]
+                }));
+                
+                // 5. Generate HTML and Print
+                const printHtml = generatePrintableTicketHTML(ticketsWithDetails, passengerDetails);
+                
+                const printContainer = document.getElementById('print-content');
+                printContainer.innerHTML = printHtml;
+                window.print();
+                
+            } catch (error) {
+                console.error('Error in printAllTickets:', error);
+                showNotification('Error generating printable tickets.', false);
+            }
+        }
+
+        /** Prints a single ticket after fetching all related details. */
+        async function printSingleTicket(ticketId) {
+            try {
+                // 1. Fetch the single Ticket
+                const ticketResponse = await fetch(`${API_URL}/ticket/${ticketId}`, { headers: { 'Authorization': userToken || '' } });
+                const ticket = await ticketResponse.json();
+
+                if (!ticketResponse.ok) {
+                    showNotification(`Error fetching ticket: ${ticket.message || 'Unknown error'}`, false);
+                    return;
+                }
+                
+                // 2. Fetch Trip Details
+                const tripResponse = await fetch(`${API_URL}/trip/${ticket.trip_id}`, { headers: { 'Authorization': userToken || '' } });
+                const trip = await tripResponse.json();
+
+                if (!tripResponse.ok) {
+                    showNotification(`Error fetching trip details: ${trip.message || 'Unknown error'}`, false);
+                    return;
+                }
+                
+                // 4. Fetch Passenger Details
+                const passengerResponse = await fetch(`${API_URL}/passenger/${ticket.passenger_id}`, { headers: { 'Authorization': userToken || '' } });
+                const passenger = await passengerResponse.json();
+                
+                if (!passengerResponse.ok && passengerResponse.status !== 404) {
+                    console.error('Error fetching passenger:', passenger.message);
+                }
+                
+                // 5. Build Print Data Structure
+                const ticketWithDetails = { 
+                    ...ticket, 
+                    trip_details: trip
+                };
+                const passengerDetails = { [ticket.passenger_id]: passenger };
+                
+                // 6. Generate HTML and Print
+                const printHtml = generatePrintableTicketHTML([ticketWithDetails], passengerDetails);
+                
+                const printContainer = document.getElementById('print-content');
+                printContainer.innerHTML = printHtml;
+                window.print();
+
+            } catch (error) {
+                console.error('Error in printSingleTicket:', error);
+                showNotification('Error printing ticket: Network or API issue.', false);
+            }
+        }
+
+
+        // --- CORE UI RENDERING FUNCTIONS ---
+
+        /** Renders the Login or Register form in the Account Tab. */
+        function renderAuthForm(type) {
+            const container = document.getElementById('account-management');
+            const isLogin = type === 'login';
+
+            const loginRoleSelector = `
+                <div class="${isLogin ? 'form-section' : 'hidden'}">
+                    <label class="form-label">Login Role</label>
+                    <div class="role-selector">
+                        <label class="bg-indigo-50" style="border-color: var(--primary-color);">
+                            <input type="radio" name="role" value="user" checked>
+                            <span class="font-semibold text-gray-800">Standard User</span>
+                        </label>
+                        <label class="bg-red-50" style="border-color: var(--error-color);">
+                            <input type="radio" name="role" value="admin">
+                            <span class="font-semibold text-gray-800">Administrator</span>
+                        </label>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = `
+                <div class="max-w-md-center p-6 bg-gray-50 rounded-xl border border-gray-200 shadow-lg">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">
+                        ${isLogin ? 'Login to Access System' : 'Create New Account'}
+                    </h2>
+                    <form onsubmit="${isLogin ? 'login(event)' : 'register(event)'}" class="form-section">
+                        <div class="form-section">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" id="username" name="username" required class="input-field" placeholder="Enter your username">
+                        </div>
+                        <div class="form-section">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" id="password" name="password" required class="input-field" placeholder="Enter your password">
+                        </div>
+                        ${loginRoleSelector}
+                        <button type="submit" class="button button-primary button-full mt-6 shadow-lg">
+                            <i class="fas fa-sign-in-alt mr-2"></i> ${isLogin ? 'Login' : 'Register'}
+                        </button>
+                    </form>
+                    <p class="mt-6 text-center text-sm text-gray-600">
+                        ${isLogin ? "Don't have an account? " : "Already have an account? "}
+                        <button onclick="renderAuthForm('${isLogin ? 'register' : 'login'}')" class="text-secondary-color font-semibold" style="cursor: pointer; background: none; border: none; padding: 0;">
+                            ${isLogin ? 'Register Here' : 'Login Here'}
+                        </button>
+                    </p>
+                    <p class="mt-4 text-xs text-center text-gray-400">
+                        Note: Registration will create a 'user' account.
+                    </p>
+                </div>
+            `;
+        }
+
+        /** Renders the Admin User Creation Panel */
+        function renderAdminCreationPanel() {
+            return `
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-user-plus mr-2 text-primary-color"></i> Admin User Creation
+                    </h3>
+                    <div class="p-6 bg-white rounded-xl border border-gray-300 shadow-lg">
+                        <p class="text-sm text-gray-600 mb-4">Create new users and explicitly assign them the Standard User or Administrator role.</p>
+                        <form id="admin-register-form" onsubmit="adminRegisterUser(event)" class="form-section">
+                            <div class="form-section">
+                                <label for="admin-username" class="form-label">Username</label>
+                                <input type="text" id="admin-username" name="username" required class="input-field" placeholder="New user username">
+                            </div>
+                            <div class="form-section">
+                                <label for="admin-password" class="form-label">Password</label>
+                                <input type="password" id="admin-password" name="password" required class="input-field" placeholder="New user password">
+                            </div>
+                            <div class="form-section">
+                                <label for="admin-role" class="form-label">Assign Role</label>
+                                <select id="admin-role" name="role" required class="input-field">
+                                    <option value="user">Standard User</option>
+                                    <option value="admin">Administrator</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="button button-success button-full shadow-lg mt-4">
+                                <i class="fas fa-user-check mr-2"></i> Create User
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+        
+        /** Renders the CRUD form for the Passenger module. */
+        function renderPassengerForm(type, data = {}) {
+            let fields = `
+                <input type="hidden" name="id" value="${data._id || ''}">
+                
+                <div class="${type === 'delete' ? 'hidden' : ''}">
+                    <label for="name" class="form-label">Full Name</label>
+                    <input type="text" id="name" name="name" value="${data.name || ''}" required class="input-field" placeholder="Passenger's Full Name">
+                </div>
+                
+                <div class="${type === 'delete' ? 'hidden' : ''} flex-group">
+                    <div>
+                        <label for="age" class="form-label">Age</label>
+                        <input type="number" id="age" name="age" value="${data.age || ''}" min="1" required class="input-field" placeholder="Age">
+                    </div>
+                    <div>
+                        <label for="gender" class="form-label">Gender</label>
+                        <select id="gender" name="gender" required class="input-field">
+                            <option value="">Select Gender</option>
+                            <option value="Male" ${data.gender === 'Male' ? 'selected' : ''}>Male</option>
+                            <option value="Female" ${data.gender === 'Female' ? 'selected' : ''}>Female</option>
+                            <option value="Other" ${data.gender === 'Other' ? 'selected' : ''}>Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="${type === 'delete' ? 'hidden' : ''}">
+                    <label for="contact" class="form-label">Contact Number</label>
+                    <input type="text" id="contact" name="contact" value="${data.contact || ''}" required class="input-field" placeholder="e.g., 9876543210">
+                </div>
+                
+                <div class="${type === 'delete' ? 'hidden' : ''}">
+                    <label for="address" class="form-label">Address (Optional)</label>
+                    <input type="text" id="address" name="address" value="${data.address || ''}" class="input-field" placeholder="Street, City, Pin">
+                </div>
+                
+                ${type === 'delete' ? `<div class="p-4 bg-red-50 rounded-lg"><p class="text-error-color font-semibold"><i class="fas fa-exclamation-triangle mr-2"></i> Are you sure you want to delete this Passenger? This is only possible if they have no active tickets.</p></div>` : ''}
+            `;
+            crudForm.innerHTML = fields + `<button type="submit" class="button button-primary button-full shadow-lg mt-4">
+                <i class="fas fa-save mr-2"></i> ${type.charAt(0).toUpperCase() + type.slice(1)} Passenger
+            </button>`;
+            crudForm.onsubmit = (e) => handleFormSubmission(e, 'passenger', type);
+        }
+
+
+        /** Renders the Seat Selection UI */
+        function renderSeatSelection(containerId, totalSeats, occupiedSeats) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <input type="hidden" id="seat_number" name="seat_number" value="0">
+                <p id="seatSelectionStatus" style="text-align: center; margin-bottom: 10px; font-weight: bold; color: var(--error-color);">Please select a seat.</p>
+                <div class="seat-map-container">
+                    <div id="seatMap" class="seat-row"></div>
+                </div>
+                <div class="seat-legend">
+                    <span style="display: flex; align-items: center;"><div class="seat-item" style="background-color: var(--success-color); border-color: #059669; height: 15px; width: 15px; margin-right: 5px;"></div> Available</span>
+                    <span style="display: flex; align-items: center;"><div class="seat-item" style="background-color: var(--secondary-color); border-color: #c2410c; height: 15px; width: 15px; margin-right: 5px;"></div> Selected</span>
+                    <span style="display: flex; align-items: center;"><div class="seat-item" style="background-color: var(--error-color); border-color: #b91c1c; height: 15px; width: 15px; margin-right: 5px;"></div> Occupied</span>
+                </div>
+            `;
+
+            const seatMap = document.getElementById('seatMap');
+            const seatNumberInput = document.getElementById('seat_number');
+            const seatStatus = document.getElementById('seatSelectionStatus');
+            const seatsPerRow = 4; // Typical bus layout
+
+            for (let i = 1; i <= totalSeats; i++) {
+                const isOccupied = occupiedSeats.includes(i);
+                const seatItem = document.createElement('div');
+                seatItem.textContent = i;
+                seatItem.classList.add('seat-item');
+                seatItem.classList.add(isOccupied ? 'occupied' : 'available');
+                
+                if (!isOccupied) {
+                    seatItem.onclick = () => {
+                        // Deselect all other seats
+                        document.querySelectorAll('.seat-item').forEach(s => s.classList.remove('selected'));
+                        
+                        // Select this seat
+                        seatItem.classList.add('selected');
+                        seatNumberInput.value = i;
+                        seatStatus.textContent = `Seat ${i} selected. Ready to book.`;
+                        seatStatus.style.color = 'var(--success-color)';
+                    };
+                }
+
+                seatMap.appendChild(seatItem);
+            }
+        }
+
+        /** Renders the Ticket Booking form/interface. */
+        async function renderTicketBooking() {
+            selectedTrip = null; // Clear previous selection
+            const container = document.getElementById('ticket-management');
+
+            // 1. Search Bar for Trips
+            const searchForm = `
+                <div class="p-6 bg-gray-50 rounded-xl border border-gray-200 shadow-inner mb-6">
+                    <h3 style="font-size: 1.25rem; font-weight: bold; color: var(--primary-color); margin-bottom: 15px;">Search Available Trips</h3>
+                    <form id="tripSearchForm" onsubmit="event.preventDefault(); searchTrips()">
+                        <div class="flex-group form-section" style="margin-bottom: 10px;">
+                            <div>
+                                <label for="searchDate" class="form-label">Date</label>
+                                <input type="date" id="searchDate" required class="input-field" value="${new Date().toISOString().substring(0, 10)}">
+                            </div>
+                            <div>
+                                <label for="searchSource" class="form-label">Source</label>
+                                <input type="text" id="searchSource" required class="input-field" placeholder="e.g., Pune">
+                            </div>
+                            <div>
+                                <label for="searchDestination" class="form-label">Destination</label>
+                                <input type="text" id="searchDestination" required class="input-field" placeholder="e.g., Mumbai">
+                            </div>
+                        </div>
+                        <button type="submit" class="button button-primary button-full">
+                            <i class="fas fa-search"></i> Search Trips
+                        </button>
+                    </form>
+                </div>
+            `;
+
+            // 2. Results Container
+            const resultsContainer = `
+                <div id="tripResultsContainer">
+                    <div class="text-center" style="padding: 30px 0;">
+                        <i class="fas fa-info-circle text-2xl text-gray-500 mb-2"></i>
+                        <p class="text-gray-500 font-semibold">Enter details and search for available trips.</p>
+                    </div>
+                </div>
+                <div id="bookingFormArea" class="hidden"></div>
+                <div id="ticketTableArea" class="mt-8 pt-6 border-t border-gray-200">
+                    <h3 style="font-size: 1.25rem; font-weight: bold; color: var(--gray-800); margin-bottom: 15px;">My Bookings</h3>
+                    <div class="button-container">
+                        <button onclick="printAllTickets(window.currentTickets || [])" class="button button-primary">
+                            <i class="fas fa-print mr-2"></i> Print All My Tickets
+                        </button>
+                        <button onclick="openModal('ticket', 'delete')" class="button button-danger">
+                            <i class="fas fa-trash-alt mr-2"></i> Cancel a Ticket
+                        </button>
+                    </div>
+                    <!-- Tickets will be rendered here by fetchAndRenderData('ticket') -->
+                    <div id="currentTicketTable"></div>
+                </div>
+            `;
+
+            container.innerHTML = searchForm + resultsContainer;
+            // Now, load the existing tickets in the new area
+            fetchAndRenderData('ticket', null, document.getElementById('currentTicketTable'));
+        }
+
+        /** Handles the Trip Search Query */
+        async function searchTrips() {
+            const date = document.getElementById('searchDate').value;
+            const source = document.getElementById('searchSource').value;
+            const destination = document.getElementById('searchDestination').value;
+            
+            const resultsContainer = document.getElementById('tripResultsContainer');
+            resultsContainer.innerHTML = `<div class="text-center" style="padding: 30px 0;">
+                <i class="fas fa-spinner fa-spin text-2xl text-primary-color mb-2"></i> Loading available trips...
+            </div>`;
+
+            try {
+                const url = `${API_URL}/trip/search?date=${date}&source=${source}&destination=${destination}`;
+                const response = await fetch(url, {
+                    headers: { 'Authorization': userToken || '' }
+                });
+                const trips = await response.json();
+
+                if (!response.ok) {
+                    showNotification(`Trip Search Failed: ${trips.message || 'Server Error'}`, false);
+                    resultsContainer.innerHTML = `<div class="text-center" style="padding: 30px 0; color: var(--error-color);">Search Failed: ${trips.message || 'Server error.'}</div>`;
+                    return;
+                }
+
+                renderTripSearchResults(trips);
+
+            } catch (error) {
+                console.error('Trip search network error:', error);
+                showNotification('Network error during trip search.', false);
+                resultsContainer.innerHTML = `<div class="text-center" style="padding: 30px 0; color: var(--error-error);">Network Error: Cannot connect to API.</div>`;
+            }
+        }
+
+        /** Renders the list of trips found. */
+        function renderTripSearchResults(trips) {
+            const resultsContainer = document.getElementById('tripResultsContainer');
+            const bookingFormArea = document.getElementById('bookingFormArea');
+            bookingFormArea.classList.add('hidden');
+            selectedTrip = null;
+
+            // --- TRIP FILTERING LOGIC ---
+            const searchDateStr = document.getElementById('searchDate').value;
+            const searchDate = new Date(searchDateStr);
+            const today = new Date();
+            let futureTrips = trips;
+
+            // Check if the search date is today
+            if (searchDate.getFullYear() === today.getFullYear() &&
+                searchDate.getMonth() === today.getMonth() &&
+                searchDate.getDate() === today.getDate()) {
+                
+                const now = new Date();
+                const currentHours = now.getHours();
+                const currentMinutes = now.getMinutes();
+
+                futureTrips = trips.filter(trip => {
+                    const [tripHours, tripMinutes] = trip.departure_time.split(':').map(Number);
+                    
+                    if (tripHours > currentHours) {
+                        return true; // Trip is in a future hour
+                    }
+                    if (tripHours === currentHours && tripMinutes > currentMinutes) {
+                        return true; // Trip is in the same hour, but a future minute
+                    }
+                    return false; // Trip is in the past
+                });
+            }
+
+            if (futureTrips.length === 0) {
+                resultsContainer.innerHTML = `<div class="text-center" style="padding: 30px 0;">
+                    <i class="fas fa-frown text-2xl text-gray-500 mb-2"></i>
+                    <p class="text-gray-500 font-semibold">No available trips found for this route and date.</p>
+                </div>`;
+                return;
+            }
+
+            let html = `<h3 style="font-size: 1.25rem; font-weight: bold; color: var(--gray-800); margin-bottom: 15px;">Available Trips (${futureTrips.length})</h3>`;
+            
+            futureTrips.sort((a, b) => {
+                // Sort by time
+                const timeA = a.departure_time.split(':').map(Number);
+                const timeB = b.departure_time.split(':').map(Number);
+                if (timeA[0] !== timeB[0]) return timeA[0] - timeB[0];
+                return timeA[1] - timeB[1];
+            });
+
+            html += `<div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Route</th>
+                            <th>Departure</th>
+                            <th>Bus Type</th>
+                            <th>Seats Left</th>
+                            <th>Fare</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            
+            futureTrips.forEach(trip => {
+                const seatsLeft = trip.available_seats;
+                const availabilityClass = seatsLeft > 5 ? 'text-success-color' : (seatsLeft > 0 ? 'text-secondary-color' : 'text-error-color');
+                const actionButton = seatsLeft > 0 
+                    ? `<button class="button button-secondary-booking" style="padding: 8px 12px; font-size: 14px;" onclick="selectTripForBooking('${trip._id}')"><i class="fas fa-check"></i> Select</button>`
+                    : `<span style="color: var(--error-color); font-weight: 600;">Sold Out</span>`;
+                
+                html += `
+                    <tr>
+                        <td>${trip.source} &rarr; ${trip.destination}</td>
+                        <td>${trip.departure_time}</td>
+                        <td>${trip.bus_details.type}</td>
+                        <td class="${availabilityClass} font-bold">${seatsLeft}</td>
+                        <td class="px-4 py-3 font-semibold text-green-700">$${(trip.fare || 0).toFixed(2)}</td>
+                        <td>${actionButton}</td>
+                    </tr>`;
+            });
+
+            html += `</tbody></table></div>`;
+            resultsContainer.innerHTML = html;
+        }
+
+        /** Fetches full details for a selected trip and opens the booking form. */
+        async function selectTripForBooking(tripId) {
+            const { trip, occupiedSeats } = await fetchTripDetailsAndTickets(tripId);
+            
+            if (!trip) return; 
+
+            selectedTrip = trip;
+
+            const bookingFormArea = document.getElementById('bookingFormArea');
+            bookingFormArea.classList.remove('hidden');
+            bookingFormArea.innerHTML = `
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <h3 style="font-size: 1.5rem; font-weight: bold; color: var(--secondary-color); margin-bottom: 10px;">
+                        <i class="fas fa-ticket-alt mr-2"></i> Book Seat on ${trip.source} &rarr; ${trip.destination}
+                    </h3>
+                    <p style="margin-bottom: 15px; color: var(--gray-600); font-weight: 600;">
+                        Date: ${new Date(trip.date).toLocaleDateString()}, Time: ${trip.departure_time}, Fare: <span class="text-green-700 font-bold">$${(trip.fare || 0).toFixed(2)}</span>
+                    </p>
+
+                    <form id="bookingForm" onsubmit="handleFormSubmission(event, 'ticket', 'add')">
+                        <input type="hidden" name="trip_id" value="${trip._id}">
+
+                        <div id="seatMapContainer" class="form-section">
+                            <!-- Seat map will be rendered here -->
+                        </div>
+
+                        <div class="form-section">
+                            <label for="passenger_id" class="form-label">Select Passenger</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <select id="passenger_id" name="passenger_id" required class="input-field" style="flex: 1;">
+                                    <option value="">Loading passengers...</option>
+                                </select>
+                                <button type="button" onclick="openPassengerQuickAddModal()" class="button button-success" style="padding: 12px; flex-shrink: 0;">
+                                    <i class="fas fa-plus" style="margin-right: 0;"></i>&nbsp;New
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="button button-secondary-booking button-full shadow-lg mt-4">
+                            <i class="fas fa-plus-square mr-2"></i> Confirm Booking
+                        </button>
+                    </form>
+                </div>
+            `;
+            
+            // Render Seat Map
+            renderSeatSelection('seatMapContainer', trip.bus_details.total_seats, occupiedSeats);
+
+            // Populate Passenger Dropdown
+            await populatePassengerDropdown(document.getElementById('passenger_id'));
+        }
+
+        /** Populates the Passenger dropdown for the booking form. */
+        async function populatePassengerDropdown(selectElement) {
+            if (!selectElement) return;
+
+            try {
+                const response = await fetch(`${API_URL}/passenger`, {
+                    headers: { 'Authorization': userToken || '' }
+                });
+                const passengers = await response.json();
+
+                if (!response.ok) {
+                    selectElement.innerHTML = `<option value="">Error loading passengers: ${passengers.message || 'API failed'}</option>`;
+                    return;
+                }
+                
+                if (passengers.length === 0) {
+                    selectElement.innerHTML = `<option value="">No passengers found. Please add one first.</option>`;
+                    return;
+                }
+                
+                selectElement.innerHTML = ''; 
+                
+                const multiplePassengersExist = passengers.length > 1;
+
+                if (multiplePassengersExist) {
+                    const placeholderOption = document.createElement('option');
+                    placeholderOption.value = "";
+                    placeholderOption.disabled = true;
+                    placeholderOption.selected = true;
+                    placeholderOption.textContent = "Select Passenger...";
+                    selectElement.appendChild(placeholderOption);
+                }
+
+                passengers.forEach((p, index) => {
+                    const option = document.createElement('option');
+                    option.value = p._id;
+                    option.textContent = `${p.name} (Age: ${p.age} / Contact: ${p.contact})`;
+                    
+                    if (!multiplePassengersExist && index === 0) {
+                        option.selected = true; 
+                        selectElement.value = p._id; 
+                    }
+                    
+                    selectElement.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error('Error populating passenger dropdown:', error);
+                selectElement.innerHTML = `<option value="" disabled selected>Network Error</option>`;
+            }
+        }
+        
+        /** Opens a modal for quickly adding a new passenger from the booking screen. */
+        function openPassengerQuickAddModal() {
+            modalTitle.textContent = 'Quick Add Passenger';
+            crudForm.innerHTML = `
+                <div class="form-section">
+                    <label for="name" class="form-label">Full Name</label>
+                    <input type="text" id="name" name="name" required class="input-field" placeholder="Passenger's Full Name">
+                </div>
+                <div class="form-section flex-group">
+                    <div>
+                        <label for="age" class="form-label">Age</label>
+                        <input type="number" id="age" name="age" min="1" required class="input-field" placeholder="Age">
+                    </div>
+                    <div>
+                        <label for="gender" class="form-label">Gender</label>
+                        <select id="gender" name="gender" required class="input-field">
+                            <option value="">Select...</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <label for="contact" class="form-label">Contact Number</label>
+                    <input type="text" id="contact" name="contact" required class="input-field" placeholder="e.g., 9876543210">
+                </div>
+                <button type="submit" class="button button-success button-full shadow-lg mt-6">
+                    <i class="fas fa-plus mr-2"></i> Add & Refresh List
+                </button>
+            `;
+            crudForm.onsubmit = (e) => handlePassengerQuickAdd(e);
+            modalOverlay.classList.remove('hidden');
+        }
+
+        /** Handles the form submission for the quick-add passenger modal. */
+        async function handlePassengerQuickAdd(e) {
+            e.preventDefault();
+            const submitButton = crudForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Adding...';
+
+            const formData = new FormData(crudForm);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch(`${API_URL}/passenger`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': userToken || '' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification('Passenger added! List refreshed.', true);
+                    closeModal();
+                    const passengerDropdown = document.getElementById('passenger_id');
+                    if (passengerDropdown) {
+                        await populatePassengerDropdown(passengerDropdown);
+                        if (result && result._id) {
+                            passengerDropdown.value = result._id;
+                        }
+                    }
+                } else {
+                    showNotification(`Failed to add passenger: ${result.message || 'Server error'}`, false);
+                }
+            } catch (error) {
+                console.error('Passenger quick-add error:', error);
+                showNotification('Network error while adding passenger.', false);
+            } finally {
+                if (submitButton) { // Check if element still exists
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<i class="fas fa-plus mr-2"></i> Add & Refresh List';
+                }
+            }
+        }
+
+        /** Opens a confirmation modal before cancelling a ticket. */
+        function confirmTicketCancellation(ticketId) {
+            modalTitle.textContent = 'Confirm Ticket Cancellation';
+            crudForm.innerHTML = `
+                <input type="hidden" name="id" value="${ticketId}">
+                <div class="p-4 bg-red-50 rounded-lg">
+                    <p class="text-error-color font-semibold">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Are you sure you want to cancel this ticket? This action cannot be undone and will free up the seat.
+                    </p>
+                    <p class="text-sm text-gray-600 mt-2">Ticket ID: <span class="font-mono">${ticketId}</span></p>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                     <button type="button" onclick="closeModal()" class="button button-gray">Go Back</button>
+                     <button type="submit" class="button button-danger">Yes, Cancel Ticket</button>
+                </div>
+            `;
+            crudForm.onsubmit = (e) => handleFormSubmission(e, 'ticket', 'delete');
+            modalOverlay.classList.remove('hidden');
+        }
+
+
+        // --- ADMIN MODULE FORMS ---
+
+        function renderBusForm(type, data = {}) {
+            let fields = `
+                <input type="hidden" name="id" value="${data._id || ''}">
+                <div class="${type === 'delete' ? 'hidden' : ''}">
+                    <label for="type" class="form-label">Type</label>
+                    <select id="type" name="type" required class="input-field">
+                        <option value="AC" ${data.type === 'AC' ? 'selected' : ''}>AC</option>
+                        <option value="Non-AC" ${data.type === 'Non-AC' ? 'selected' : ''}>Non-AC</option>
+                        <option value="Sleeper" ${data.type === 'Sleeper' ? 'selected' : ''}>Sleeper</option>
+                        <option value="Deluxe" ${data.type === 'Deluxe' ? 'selected' : ''}>Deluxe</option>
+                    </select>
+                </div>
+                <div class="${type === 'delete' ? 'hidden' : ''} flex-group">
+                    <div>
+                        <label for="source" class="form-label">Source</label>
+                        <input type="text" id="source" name="source" value="${data.source || ''}" required class="input-field" placeholder="e.g., Pune">
+                    </div>
+                    <div>
+                        <label for="destination" class="form-label">Destination</label>
+                        <input type="text" id="destination" name="destination" value="${data.destination || ''}" required class="input-field" placeholder="e.g., Mumbai">
+                    </div>
+                </div>
+                <div class="${type === 'delete' ? 'hidden' : ''} flex-group">
+                    <div>
+                        <label for="total_seats" class="form-label">Total Seats</label>
+                        <input type="number" id="total_seats" name="total_seats" value="${data.total_seats || 50}" min="1" required class="input-field" placeholder="Capacity">
+                    </div>
+                    <div>
+                        <label for="fare" class="form-label">Base Fare (for Trips)</label>
+                        <input type="number" id="fare" name="fare" value="${data.fare || 500.00}" step="0.01" min="0" required class="input-field" placeholder="0.00">
+                    </div>
+                </div>
+                ${type === 'delete' ? `<div class="p-4 bg-red-50 rounded-lg"><p class="text-error-color font-semibold"><i class="fas fa-exclamation-triangle mr-2"></i> Are you sure you want to delete Bus ID: ${data._id.substring(0, 8)}...? This action cannot be undone and is only possible if no trips use it.</p></div>` : ''}
+            `;
+            crudForm.innerHTML = fields + `<button type="submit" class="button button-primary button-full shadow-lg mt-4">
+                <i class="fas fa-save mr-2"></i> ${type.charAt(0).toUpperCase() + type.slice(1)} Route
+            </button>`;
+            crudForm.onsubmit = (e) => handleFormSubmission(e, 'bus', type);
+        }
+
+        function renderTripForm(type, routes, data = {}) {
+            const renderRouteOptions = (items, selectedId) => items.map(item => {
+                const id = item._id;
+                const displayText = `${item.source} → ${item.destination} (${item.type} / $${(item.fare || 0).toFixed(2)})`;
+                return `<option value="${id}" ${id === data.bus_id ? 'selected' : ''}>${displayText}</option>`;
+            }).join('');
+
+            let fields = `
+                <input type="hidden" name="id" value="${data._id || ''}">
+                <div class="${type === 'delete' ? 'hidden' : ''}">
+                    <label for="bus_id" class="form-label">Bus Route</label>
+                    <select id="bus_id" name="bus_id" required class="input-field">
+                        <option value="0">Select Base Bus Route...</option>
+                        ${renderRouteOptions(routes, data.bus_id)}
+                    </select>
+                </div>
+                <div class="${type === 'delete' ? 'hidden' : ''} flex-group">
+                    <div>
+                        <label for="date" class="form-label">Date</label>
+                        <input type="date" id="date" name="date" value="${data.date ? new Date(data.date).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10)}" required class="input-field">
+                    </div>
+                    <div>
+                        <label for="departure_time" class="form-label">Departure Time</label>
+                        <input type="time" id="departure_time" name="departure_time" value="${data.departure_time || '10:00'}" required class="input-field">
+                    </div>
+                </div>
+                ${type === 'delete' ? `<div class="p-4 bg-red-50 rounded-lg"><p class="text-error-color font-semibold"><i class="fas fa-exclamation-triangle mr-2"></i> Are you sure you want to delete Trip ID: ${data._id.substring(0, 8)}...? This will automatically prevent new bookings and should be handled with caution.</p></div>` : ''}
+            `;
+            crudForm.innerHTML = fields + `<button type="submit" class="button button-primary button-full shadow-lg mt-4">
+                <i class="fas fa-save mr-2"></i> ${type.charAt(0).toUpperCase() + type.slice(1)} Trip
+            </button>`;
+            crudForm.onsubmit = (e) => handleFormSubmission(e, 'trip', type);
+        }
+        
+        // --- CORE MODAL FUNCTIONS ---
+
+        /** Fetches necessary data for Update/Delete ID dropdowns. */
+        function populateIdDropdowns(selectId, data, module) {
+            const selectElement = document.getElementById(selectId);
+            if (!selectElement) return;
+
+            selectElement.innerHTML = `<option value="0">Select ${module.charAt(0).toUpperCase() + module.slice(1)}...</option>`;
+
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item._id;
+                
+                let displayText = `${item._id.substring(0, 8)}...`;
+
+                if (module === 'bus') {
+                    displayText = `${item.source} → ${item.destination} (${item.type})`;
+                } else if (module === 'passenger') {
+                    displayText = `${item.name}, Age: ${item.age} (ID: ${item._id.substring(0, 8)}...)`;
+                } else if (module === 'ticket') {
+                    const date = new Date(item.journey_date).toLocaleDateString();
+                    displayText = `Ticket: ${item._id.substring(0, 8)}... (Seat ${item.seat_number} on ${date})`;
+                } else if (module === 'trip') {
+                    const date = new Date(item.date).toLocaleDateString();
+                    displayText = `${item.source} → ${item.destination} on ${date} @ ${item.departure_time}`;
+                }
+
+                option.textContent = displayText;
+                selectElement.appendChild(option);
+            });
+        }
+
+
+        async function openModal(module, type, itemData = {}) {
+            // Check for admin role for Bus/Trip CRUD
+            if ((module === 'bus' || module === 'trip') && userRole !== 'admin') {
+                showNotification('Access Denied: Only administrators can manage Bus Routes and Trip Schedules.', false);
+                return;
+            }
+            // Check for authentication for Passenger/Ticket CRUD
+            if ((module === 'passenger' || module === 'ticket') && userRole === 'guest') {
+                showNotification('Access Denied: Please log in to manage your passengers and tickets.', false);
+                return;
+            }
+            
+            modalTitle.textContent = `${type.charAt(0).toUpperCase() + type.slice(1)} ${module.charAt(0).toUpperCase() + module.slice(1)}`;
+            crudForm.innerHTML = '';
+            
+            // --- Logic for Update/Delete (requires ID selection) ---
+            if (type === 'update' || type === 'delete') {
+                try {
+                    const response = await fetch(`${API_URL}/${module}`, {
+                        headers: { 'Authorization': userToken || '' }
+                    });
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        showNotification(`Error fetching data for selection: ${data.message}`, false);
+                        return;
+                    }
+                    
+                    if (data.length === 0) {
+                        showNotification(`No ${module} records found to ${type}.`, false);
+                        return;
+                    }
+
+                    // For Admin, need bus details for trip display
+                    let busRoutes = [];
+                    if (module === 'trip' && userRole === 'admin') {
+                        const busResponse = await fetch(`${API_URL}/bus`, { headers: { 'Authorization': userToken || '' } });
+                        busRoutes = busResponse.ok ? await busResponse.json() : [];
+                    }
+
+
+                    let selectHtml = `
+                        <div class="form-section">
+                            <label for="${module}IdSelect" class="form-label">Select Item to ${type}</label>
+                            <select id="${module}IdSelect" required class="input-field">
+                                <option value="0">Select ${module.charAt(0).toUpperCase() + module.slice(1)}...</option>
+                            </select>
+                        </div>
+                        <div id="dynamicFormContainer"></div>
+                    `;
+                    crudForm.innerHTML = selectHtml;
+                    
+                    const selectId = `${module}IdSelect`;
+                    populateIdDropdowns(selectId, data, module);
+                    
+                    const selectElement = document.getElementById(selectId);
+                    const formContainer = document.getElementById('dynamicFormContainer');
+
+                    selectElement.onchange = async (e) => {
+                        const selectedId = e.target.value;
+                        if (selectedId === '0') {
+                            formContainer.innerHTML = '';
+                            return;
+                        }
+                        const selectedItem = data.find(item => item._id === selectedId);
+                        
+                        // Fetch full details if necessary (e.g., trip details needed for bus_id)
+                        if (module === 'trip') {
+                             const detailResponse = await fetch(`${API_URL}/${module}/${selectedId}`, { headers: { 'Authorization': userToken || '' } });
+                             const details = detailResponse.ok ? await detailResponse.json() : selectedItem;
+                             selectedItem.bus_id = details.bus_id; // Ensure bus_id is present for trip form
+                        }
+
+                        selectedItem.id = selectedId;
+                        formContainer.innerHTML = '';
+
+                        if (module === 'bus') renderBusForm(type, selectedItem);
+                        else if (module === 'passenger') renderPassengerForm(type, selectedItem); 
+                        else if (module === 'ticket') {
+                            if (type === 'delete') {
+                                crudForm.onsubmit = (e) => handleFormSubmission(e, 'ticket', type);
+                                crudForm.innerHTML = `<input type="hidden" name="id" value="${selectedId}">
+                                    <div class="p-4 bg-red-50 rounded-lg">
+                                        <p class="text-error-color font-semibold"><i class="fas fa-exclamation-triangle mr-2"></i> Are you sure you want to cancel Ticket ID: ${selectedId.substring(0, 8)}...? This will restore the seat.</p>
+                                    </div>
+                                    <button type="submit" class="button button-danger button-full shadow-lg mt-4">
+                                        <i class="fas fa-trash-alt mr-2"></i> Cancel Ticket
+                                    </button>`;
+                            } else if (type === 'update') {
+                                showNotification('Tickets cannot be updated. Please cancel and re-book.', false);
+                                closeModal();
+                            }
+                        }
+                        else if (module === 'trip') {
+                            renderTripForm(type, busRoutes, selectedItem);
+                        }
+                    };
+                    
+                    modalOverlay.classList.remove('hidden');
+
+                } catch (error) {
+                    console.error('Data fetching error for modal:', error);
+                    showNotification('Network error while populating selection dropdowns.', false);
+                }
+            } 
+            // --- Standard case: Add form ---
+            else if (type === 'add') {
+                if (module === 'bus') {
+                    renderBusForm(type);
+                }
+                else if (module === 'trip') {
+                    try {
+                        const routeResponse = await fetch(`${API_URL}/bus`, { headers: { 'Authorization': userToken || '' } });
+                        const routes = routeResponse.ok ? await routeResponse.json() : [];
+                        if (routes.length === 0) {
+                            showNotification('Cannot create trip. Please add a Bus Route first.', false);
+                            return;
+                        }
+                        renderTripForm(type, routes);
+                    } catch (error) {
+                         showNotification('Error loading bus routes for trip creation.', false);
+                         return;
+                    }
+                }
+                else if (module === 'passenger') {
+                    renderPassengerForm(type); 
+                }
+                else if (module === 'ticket') {
+                    // Booking starts from the search results on the ticket tab.
+                    showNotification('Ticket booking starts by searching for a trip on the Ticket Booking tab.', false);
+                    return;
+                }
+                modalOverlay.classList.remove('hidden');
+            }
+        }
+
+        function closeModal() {
+            modalOverlay.classList.add('hidden');
+            crudForm.innerHTML = ''; // Clear form content
+        }
+
+        /**
+         * Fetches data for a module and renders the main table.
+         */
+        async function fetchAndRenderData(module, searchTerm = '', customContainer = null) {
+            if (module === 'account') {
+                if (userRole === 'guest') {
+                    renderAuthForm('login');
+                } else {
+                    let adminPanel = '';
+                    if (userRole === 'admin') {
+                        adminPanel = renderAdminCreationPanel();
+                    }
+
+                    document.getElementById('account-management').innerHTML = `
+                        <div class="max-w-md-center p-8 bg-indigo-50 rounded-xl shadow-lg text-center">
+                            <i class="fas fa-user-shield text-6xl text-primary-color mb-4"></i>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">Authenticated User</h2>
+                            <p class="text-lg text-gray-600">You are logged in as a <span class="font-bold text-secondary-color">${userRole.toUpperCase()}</span>.</p>
+                            <p class="text-sm text-gray-500 mt-1">Username: ${currentUsername}</p>
+                            <button onclick="logout()" class="button button-danger mt-6 button-header shadow-lg">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Log Out
+                            </button>
+                        </div>
+                        ${adminPanel}
+                    `;
+                }
+                return;
+            }
+            
+            // Authorization check for Admin-only tabs
+            if ((module === 'bus' || module === 'trip') && userRole !== 'admin') {
+                const container = document.getElementById(`${module}-management`);
+                container.innerHTML = `<div class="p-8 text-center bg-red-50 rounded-xl text-error-color shadow-inner">
+                                                <i class="fas fa-lock text-4xl mb-3"></i>
+                                                <h2 class="text-xl font-bold">Admin Access Required</h2>
+                                                <p>Please log in with an admin account to view and manage ${module === 'bus' ? 'Bus Routes' : 'Trip Schedules'}.</p>
+                                            </div>`;
+                return;
+            }
+            
+            const container = customContainer || document.getElementById(`${module}-management`);
+            container.innerHTML = `<div class="text-center" style="padding: 30px 0;">
+                                     <i class="fas fa-spinner fa-spin text-2xl text-primary-color mr-2"></i> Loading ${module} data...
+                                    </div>`;
+
+            try {
+                let url = `${API_URL}/${module}`;
+                if (module === 'passenger' && searchTerm) {
+                    url += `?search=${encodeURIComponent(searchTerm)}`;
+                }
+                
+                const response = await fetch(url, {
+                    headers: { 'Authorization': userToken || '' }
+                });
+                let data = await response.json();
+                
+                if (!response.ok) {
+                    showNotification(`Failed to load ${module} data: ${data.message || 'Unknown API error.'}`, false);
+                    renderTable(module, [], searchTerm, container);
+                    return;
+                }
+
+                // If the current user is a 'user', filter tickets to show only their own.
+                if (module === 'ticket' && userRole === 'user') {
+                    try {
+                        const passengerResponse = await fetch(`${API_URL}/passenger`, {
+                            headers: { 'Authorization': userToken || '' }
+                        });
+                        if (passengerResponse.ok) {
+                            const userPassengers = await passengerResponse.json();
+                            const userPassengerIds = new Set(userPassengers.map(p => p._id));
+                            data = data.filter(ticket => userPassengerIds.has(ticket.passenger_id));
+                        } else {
+                            throw new Error('Failed to fetch user passengers');
+                        }
+                    } catch(err) {
+                        console.error("Could not filter tickets for user:", err);
+                        showNotification('Error: Could not verify your tickets.', false);
+                        data = []; // Failsafe: show no tickets if filtering fails.
+                    }
+                }
+
+                renderTable(module, data, searchTerm, container);
+
+            } catch (error) {
+                console.error(`Error fetching ${module} data:`, error);
+                showNotification(`Network error loading ${module} module. Is the Node.js server running?`, false);
+                renderTable(module, [], searchTerm, container);
+            }
+        }
+        
+        /**
+         * Renders the main data table for a module.
+         */
+        function renderTable(module, data, searchTerm = '', container) {
+            
+            // 1. Action Buttons
+            const isAdmin = userRole === 'admin';
+            const isTicketModule = module === 'ticket';
+            const isPassengerModule = module === 'passenger';
+            
+            let buttons = '';
+
+            // Render buttons ONLY if it's NOT the main ticket table
+            if (!isTicketModule) {
+                 const moduleName = module.charAt(0).toUpperCase() + module.slice(1);
+                const buttonContainerDiv = document.createElement('div');
+                buttonContainerDiv.classList.add('button-container');
+
+                if (isAdmin || isPassengerModule) {
+                    buttonContainerDiv.innerHTML += `
+                        <button onclick="openModal('${module}', 'add')" class="button button-success">
+                            <i class="fas fa-plus mr-2"></i> Add ${moduleName}
+                        </button>
+                        <button onclick="openModal('${module}', 'update')" class="button button-warning">
+                            <i class="fas fa-edit mr-2"></i> Update
+                        </button>
+                        <button onclick="openModal('${module}', 'delete')" class="button button-danger">
+                            <i class="fas fa-trash-alt mr-2"></i> Delete
+                        </button>
+                    `;
+                } else {
+                     buttons = `<div class="p-4 mb-6 bg-yellow-100 rounded-lg text-yellow-800 font-semibold"><i class="fas fa-info-circle mr-2"></i> Log in as administrator to manage ${moduleName} records.</div>`;
+                }
+                 if (buttonContainerDiv.childElementCount > 0) {
+                     buttons += buttonContainerDiv.outerHTML;
+                }
+            }
+
+
+            // 1.5. Search Bar for Passengers
+            if (module === 'passenger') {
+                buttons += `
+                    <div class="form-section">
+                        <form onsubmit="event.preventDefault(); fetchAndRenderData('passenger', document.getElementById('passenger-search').value, document.getElementById('passenger-management'));">
+                            <div class="flex-group">
+                                <div style="flex-grow: 1;">
+                                    <input type="text" id="passenger-search" placeholder="Search by name or contact..." value="${searchTerm}" class="input-field" />
+                                </div>
+                                <div style="flex-grow: 0;">
+                                    <button type="submit" class="button button-primary" style="padding: 12px 16px;"><i class="fas fa-search"></i></button>
+                                </div>
+                                ${searchTerm ? `
+                                <div style="flex-grow: 0;">
+                                    <button type="button" onclick="fetchAndRenderData('passenger', '', document.getElementById('passenger-management'))" class="button button-gray" style="padding: 12px 16px;">
+                                        <i class="fas fa-times"></i> Clear
+                                    </button>
+                                </div>` : ''}
+                            </div>
+                        </form>
+                    </div>
+                `;
+            }
+
+            if (data.length === 0) {
+                const moduleName = module.charAt(0).toUpperCase() + module.slice(1);
+                container.innerHTML = buttons + `<div class="p-8 text-center bg-gray-100 rounded-lg">
+                                    <i class="fas fa-box-open text-4xl text-gray-400 mb-3"></i>
+                                    <p class="text-gray-500 italic">No ${moduleName} records found. Please add a new one or adjust your search.</p>
+                                  </div>`;
+                return;
+            }
+
+            // 2. Table Structure
+            let header = [];
+            let rows = '';
+
+            if (module === 'bus') {
+                header = ['ID', 'Type', 'Route', 'Total Seats', 'Base Fare'];
+                rows = data.map(b => `
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="px-4 py-3 font-mono text-xs text-gray-600">${b._id.substring(0, 8)}...</td>
+                        <td class="px-4 py-3 font-semibold">${b.type}</td>
+                        <td class="px-4 py-3">${b.source} <i class="fas fa-arrow-right text-xs text-secondary-color"></i> ${b.destination}</td>
+                        <td class="px-4 py-3 text-center">${b.total_seats}</td>
+                        <td class="px-4 py-3 font-semibold text-green-700">$${(b.fare || 0).toFixed(2)}</td>
+                    </tr>
+                `).join('');
+            } else if (module === 'trip') {
+                 header = ['ID', 'Route', 'Date', 'Time', 'Bus Type', 'Seats Left'];
+                rows = data.map(t => `
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="px-4 py-3 font-mono text-xs text-gray-600">${t._id.substring(0, 8)}...</td>
+                        <td class="px-4 py-3">${t.source} <i class="fas fa-arrow-right text-xs text-secondary-color"></i> ${t.destination}</td>
+                        <td class="px-4 py-3">${new Date(t.date).toLocaleDateString()}</td>
+                        <td class="px-4 py-3 font-semibold">${t.departure_time}</td>
+                        <td class="px-4 py-3">${t.bus_details ? t.bus_details.type : 'N/A'}</td>
+                        <td class="px-4 py-3 font-bold ${t.available_seats > 0 ? 'text-success-color' : 'text-error-color'} text-center">${t.available_seats}</td>
+                    </tr>
+                `).join('');
+            }
+             else if (module === 'passenger') {
+                header = ['ID', 'Name', 'Age/Gender', 'Contact', 'Address'];
+                rows = data.map(p => `
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="px-4 py-3 font-mono text-xs text-gray-600">${p._id.substring(0, 8)}...</td>
+                        <td class="px-4 py-3 font-semibold">${p.name}</td>
+                        <td class="px-4 py-3">${p.age} / ${p.gender}</td>
+                        <td class="px-4 py-3">${p.contact}</td>
+                        <td class="px-4 py-3 text-sm text-gray-500">${p.address || 'N/A'}</td>
+                    </tr>
+                `).join('');
+            } else if (module === 'ticket') {
+                window.currentTickets = data; // Store tickets globally for printing
+                header = ['ID', 'Trip ID', 'Passenger ID', 'Date', 'Seat', 'Fare', 'Actions'];
+                rows = data.map(t => `
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="px-4 py-3 font-mono text-xs text-gray-600">${t._id.substring(0, 8)}...</td>
+                        <td class="px-4 py-3 text-primary-color font-mono text-xs">${t.trip_id ? t.trip_id.substring(0, 8) : 'N/A'}...</td>
+                        <td class="px-4 py-3 text-primary-color font-mono text-xs">${t.passenger_id ? t.passenger_id.substring(0, 8) : 'N/A'}...</td>
+                        <td class="px-4 py-3">${new Date(t.journey_date).toLocaleDateString()}</td>
+                        <td class="px-4 py-3 text-center font-bold text-secondary-color">${t.seat_number}</td>
+                        <td class="px-4 py-3 font-semibold text-green-700">$${(t.fare || 0).toFixed(2)}</td>
+                        <td class="px-4 py-3">
+                             <button onclick="printSingleTicket('${t._id}')" class="button button-gray" style="padding: 4px 8px; font-size: 12px;"><i class="fas fa-print"></i> Print</button>
+                             <button onclick="confirmTicketCancellation('${t._id}')" class="button button-danger" style="padding: 4px 8px; font-size: 12px; margin-left: 5px;"><i class="fas fa-trash-alt"></i> Cancel</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            let tableContent = `
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                ${header.map(h => `<th class="px-4 py-3">${h}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            container.innerHTML = buttons + tableContent;
+        }
+
+        /** Handles switching between tabs. */
+        function switchTab(module) {
+            // Hide all tab content
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // Remove 'active' class from all buttons
+            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+
+            // Find and show selected tab content and set button as active
+            const tabContent = document.getElementById(`${module}-management`);
+            const tabButton = document.querySelector(`[data-tab="${module}"]`);
+            
+            if (tabContent && tabButton) {
+                tabContent.classList.remove('hidden');
+                tabButton.classList.add('active');
+                
+                // Fetch and render data for the selected module
+                if (module === 'ticket' && userRole !== 'guest') {
+                    renderTicketBooking();
+                } else {
+                    // For all Admin tabs and Passenger management
+                    fetchAndRenderData(module);
+                }
+            }
+        }
+        
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const tab = e.currentTarget.getAttribute('data-tab');
+                    switchTab(tab);
+                });
+            });
+            
+            // Initial UI setup based on auth state
+            updateUIVisibility();
+        });
+
+    </script>
+</body>
+</html>
+
